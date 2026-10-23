@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bolão Worlds 2026 - LoL Esports</title>
+    
+    <!-- Google Fonts & FontAwesome Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Beaufort+for+LOL:wght@700;800&family=Spiegel:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Estilo CSS -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="hextech-theme">
+
+    <!-- CABEÇALHO -->
+    <header class="app-header">
+        <div class="header-container">
+            <div class="logo-area">
+                <i class="fa-solid fa-trophy header-icon"></i>
+                <div>
+                    <h1>BOLÃO WORLDS 2026</h1>
+                    <span class="sub-logo">FASE SUÍÇA & FINALS</span>
+                </div>
+            </div>
+            
+            <div id="userHeaderProfile" class="user-header-profile hidden">
+                <div class="user-info">
+                    <span class="user-role-badge" id="headerRoleBadge">Membro</span>
+                    <strong id="headerUserNick">Invocador</strong>
+                </div>
+                <button id="btnLogout" class="btn-secondary btn-sm" onclick="handleLogout()">
+                    <i class="fa-solid fa-sign-out-alt"></i> Sair
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- CONTEÚDO PRINCIPAL -->
+    <main class="main-container">
+        
+        <!-- SESSÃO DE AUTENTICAÇÃO -->
+        <section id="authSection" class="auth-card">
+            <div class="auth-tabs">
+                <button id="tabLoginBtn" class="auth-tab-btn active" onclick="switchAuthTab('login')">Entrar</button>
+                <button id="tabRegisterBtn" class="auth-tab-btn" onclick="switchAuthTab('register')">Criar Conta</button>
+            </div>
+
+            <!-- LOGIN -->
+            <form id="loginForm" class="auth-form" onsubmit="handleLogin(event)">
+                <h2>Acessar o Bolão</h2>
+                <div class="form-group">
+                    <label for="loginEmail">E-mail</label>
+                    <input type="email" id="loginEmail" placeholder="seu@email.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">Senha</label>
+                    <input type="password" id="loginPassword" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="btn-primary btn-full">
+                    <i class="fa-solid fa-right-to-bracket"></i> Entrar
+                </button>
+            </form>
+
+            <!-- CADASTRO -->
+            <form id="registerForm" class="auth-form hidden" onsubmit="handleRegister(event)">
+                <h2>Criar Conta de Invocador</h2>
+                <div class="form-group">
+                    <label for="regNick">Nick / Nome Exibido</label>
+                    <input type="text" id="regNick" placeholder="Ex: Lemores, Soni..." required maxlength="20">
+                </div>
+                <div class="form-group">
+                    <label for="regEmail">E-mail</label>
+                    <input type="email" id="regEmail" placeholder="seu@email.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="regPassword">Senha</label>
+                    <input type="password" id="regPassword" placeholder="Mínimo 6 caracteres" minlength="6" required>
+                </div>
+                <button type="submit" class="btn-primary btn-full">
+                    <i class="fa-solid fa-user-plus"></i> Registrar e Palpitar
+                </button>
+            </form>
+
+            <div id="authError" class="auth-error hidden"></div>
+        </section>
+
+        <!-- DASHBOARD DA APLICAÇÃO -->
+        <div id="appDashboard" class="dashboard hidden">
+            
+            <nav class="nav-tabs">
+                <button class="nav-btn active" onclick="switchMainTab('predictions')">
+                    <i class="fa-solid fa-gamepad"></i> Meus Palpites
+                </button>
+                <button class="nav-btn" onclick="switchMainTab('groupGuesses')">
+                    <i class="fa-solid fa-users"></i> Palpites da Galera
+                </button>
+                <button class="nav-btn" onclick="switchMainTab('ranking')">
+                    <i class="fa-solid fa-ranking-star"></i> Classificação
+                </button>
+                <button class="nav-btn" onclick="switchMainTab('rules')">
+                    <i class="fa-solid fa-scroll"></i> Regras
+                </button>
+                <button id="adminTabBtn" class="nav-btn admin-only hidden" onclick="switchMainTab('admin')">
+                    <i class="fa-solid fa-user-shield"></i> Painel Admin
+                </button>
+            </nav>
+
+            <!-- ABA 1: MEUS PALPITES -->
+            <section id="predictionsTab" class="tab-content active">
+                <div class="round-selector-bar">
+    <label for="roundSelect">Rodada Ativa:</label>
+    <select id="roundSelect" onchange="onRoundChange()">
+        <option value="suica_r1">Fase Suíça - Rodada 1</option>
+    </select>
+    
+    <div id="lockStatusBadge" class="lock-status-badge">
+        <i class="fa-solid fa-lock-open"></i> Palpites Abertos
+    </div>
+</div>
+
+                <!-- CRONÔMETRO DE BLOQUEIO -->
+                <div class="lock-warning-banner" id="countdownBanner">
+                    <div class="countdown-wrapper">
+                        <i class="fa-solid fa-clock-rotate-left"></i>
+                        <span>Tempo restante para travar os palpites:</span>
+                        <strong id="countdownTimer" class="countdown-timer">--:--:--</strong>
+                    </div>
+                </div>
+
+                <div id="matchesContainer" class="matches-grid"></div>
+
+                <div class="submit-action-area">
+                    <p style="font-size: 0.85rem; color: var(--hextech-blue-cyan); text-align: center;">
+                        <i class="fa-solid fa-bolt"></i> Selecione os times vencedores acima. Seus palpites são salvos automaticamente!
+                    </p>
+                </div>
+            </section>
+
+            <!-- ABA 2: PALPITES DA GALERA -->
+            <section id="groupGuessesTab" class="tab-content hidden">
+                <div class="section-header">
+                    <h2><i class="fa-solid fa-users-viewfinder"></i> Escolhas Individuais dos Participantes</h2>
+                    <p class="section-desc">Acompanhe quem apostou em quem em cada confronto!</p>
+                </div>
+
+                <div id="groupMatchesBreakdown" class="group-matches-container"></div>
+            </section>
+
+            <!-- ABA 3: RANKING -->
+            <section id="rankingTab" class="tab-content hidden">
+                <div class="section-header">
+                    <h2><i class="fa-solid fa-trophy"></i> Tabela de Classificação do Grupo</h2>
+                    <p class="section-desc">Pontuação calculada em tempo real com base nos resultados cadastrados.</p>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="ranking-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Invocador</th>
+                                <th>Pontos Totais</th>
+                            </tr>
+                        </thead>
+                        <tbody id="rankingTableBody"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- ABA 4: REGRAS -->
+            <section id="rulesTab" class="tab-content hidden">
+                <div class="rules-card">
+                    <h2><i class="fa-solid fa-shield-halved"></i> Regras de Pontuação</h2>
+                    <div class="rules-grid">
+                        <div class="rule-box">
+                            <div class="rule-icon"><i class="fa-solid fa-bolt"></i></div>
+                            <h3>Partidas MD1</h3>
+                            <p><strong>3 Pontos:</strong> Por acertar o vencedor do confronto.</p>
+                        </div>
+                        <div class="rule-box">
+                            <div class="rule-icon"><i class="fa-solid fa-crosshair"></i></div>
+                            <h3>Partidas MD3 ou MD5</h3>
+                            <p><strong>3 Pontos:</strong> Placar exato da série ("Cravada").</p>
+                            <p><strong>1 Ponto:</strong> Apenas o vencedor correto.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ABA 5: PAINEL ADMIN -->
+            <section id="adminTab" class="tab-content hidden">
+                <div class="admin-panel-card">
+                    <h2><i class="fa-solid fa-screwdriver-wrench"></i> Painel Administrador</h2>
+                    
+                    <div class="admin-block">
+                        <h3>1. Gerenciar / Atualizar Vencedores</h3>
+                        <p class="admin-desc">Selecione o vencedor real dos jogos ou exclua confrontos antigos.</p>
+                        <div id="adminMatchesList" class="admin-matches-list"></div>
+                    </div>
+
+                    <div class="admin-block">
+                        <h3>2. Adicionar Novo Confronto Manualmente</h3>
+                        <form id="addMatchForm" onsubmit="handleAddMatch(event)">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="newRoundId">ID da Rodada</label>
+                                    <input type="text" id="newRoundId" placeholder="Ex: suica_r1" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="matchFormat">Formato</label>
+                                    <select id="matchFormat">
+                                        <option value="MD1">MD1</option>
+                                        <option value="MD3">MD3</option>
+                                        <option value="MD5">MD5</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- TIME AZUL -->
+                            <div class="admin-team-input-group">
+                                <h4>Time Azul</h4>
+                                <div class="form-group">
+                                    <label for="teamBlue">Nome / Sigla</label>
+                                    <input type="text" id="teamBlue" placeholder="Ex: GEN" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="teamBlueLogoFile">Upload da Logo (Arquivo)</label>
+                                    <input type="file" id="teamBlueLogoFile" accept="image/*">
+                                </div>
+                                <div class="form-group">
+                                    <label for="teamBlueLogoUrl">ou Link / URL da Logo</label>
+                                    <input type="url" id="teamBlueLogoUrl" placeholder="https://...">
+                                </div>
+                            </div>
+
+                            <!-- TIME VERMELHO -->
+                            <div class="admin-team-input-group">
+                                <h4>Time Vermelho</h4>
+                                <div class="form-group">
+                                    <label for="teamRed">Nome / Sigla</label>
+                                    <input type="text" id="teamRed" placeholder="Ex: IG" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="teamRedLogoFile">Upload da Logo (Arquivo)</label>
+                                    <input type="file" id="teamRedLogoFile" accept="image/*">
+                                </div>
+                                <div class="form-group">
+                                    <label for="teamRedLogoUrl">ou Link / URL da Logo</label>
+                                    <input type="url" id="teamRedLogoUrl" placeholder="https://...">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="matchDateTime">Data e Horário do Jogo</label>
+                                <input type="datetime-local" id="matchDateTime" required>
+                            </div>
+
+                            <button type="submit" class="btn-primary btn-full" id="btnAddMatchSubmit">
+                                <i class="fa-solid fa-plus"></i> Adicionar Confronto Manualmente
+                            </button>
+                        </form>
+                    </div>
+
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <div id="toastNotification" class="toast hidden"></div>
+
+    <script type="module" src="app.js"></script>
+</body>
+</html>
