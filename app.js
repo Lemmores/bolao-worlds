@@ -86,11 +86,12 @@ function initRealtimeListeners() {
     });
 }
 
-// ATUALIZAR O SELETOR DE RODADAS AUTOMATICAMENTE
+// ATUALIZAR O SELETOR DE RODADAS EXIBINDO A ÚLTIMA RODADA CADASTRADA PRIMEIRO
 function updateRoundDropdown() {
     const roundSelect = document.getElementById('roundSelect');
     if (!roundSelect) return;
 
+    // Obtém as rodadas únicas cadastradas
     const uniqueRounds = [...new Set(allMatches.map(m => m.roundId))];
 
     if (uniqueRounds.length === 0) {
@@ -98,23 +99,42 @@ function updateRoundDropdown() {
         return;
     }
 
-    roundSelect.innerHTML = '';
-    
-    let autoSelectedRound = uniqueRounds[0]; 
-    const now = new Date().getTime();
+    // 🚀 INVERTE A ORDEM: A última rodada cadastrada fica no topo do array
+    const reversedRounds = [...uniqueRounds].reverse();
 
-    for (let rId of uniqueRounds) {
-        const matches = allMatches.filter(m => m.roundId === rId);
-        if (matches.length > 0) {
-            const firstMatchTime = new Date(matches[0].dateTimeISO).getTime();
-            if (firstMatchTime > now) {
-                autoSelectedRound = rId;
-                break;
-            } else {
-                autoSelectedRound = rId;
-            }
-        }
+    // Guarda a seleção atual do usuário para não perder caso ele esteja navegando
+    const previousSelection = roundSelect.value;
+
+    roundSelect.innerHTML = '';
+
+    reversedRounds.forEach(rId => {
+        let label = rId;
+        const cleanId = rId.toLowerCase().trim();
+
+        if (cleanId === 'rodada_1' || cleanId === 'r1' || cleanId === 'suica_r1') label = 'Fase Suíça - Rodada 1';
+        else if (cleanId === 'rodada_2' || cleanId === 'r2' || cleanId === 'suica_r2') label = 'Fase Suíça - Rodada 2';
+        else if (cleanId === 'rodada_3' || cleanId === 'r3' || cleanId === 'suica_r3') label = 'Fase Suíça - Rodada 3';
+        else if (cleanId === 'rodada_4' || cleanId === 'r4' || cleanId === 'suica_r4') label = 'Fase Suíça - Rodada 4';
+        else if (cleanId === 'rodada_5' || cleanId === 'r5' || cleanId === 'suica_r5') label = 'Fase Suíça - Rodada 5';
+        else if (cleanId === 'quartas') label = 'Knockouts - Quartas de Final';
+        else if (cleanId === 'semi') label = 'Knockouts - Semifinais';
+        else if (cleanId === 'final') label = 'Grande Final';
+
+        const opt = document.createElement('option');
+        opt.value = rId;
+        opt.textContent = label;
+        roundSelect.appendChild(opt);
+    });
+
+    // Se o usuário já tiver escolhido uma rodada válida no menu, mantém.
+    // Caso contrário (primeiro carregamento), seleciona a ÚLTIMA rodada cadastrada (topo da lista).
+    if (previousSelection && uniqueRounds.includes(previousSelection)) {
+        roundSelect.value = previousSelection;
+    } else {
+        roundSelect.value = reversedRounds[0]; 
     }
+
+
 
     uniqueRounds.forEach(rId => {
         let label = rId;
